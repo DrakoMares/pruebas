@@ -4,32 +4,27 @@
  */
 
 function minezone_page() {
-	$nid = 30;
+	$nid = 50;
 	$node = node_load($nid);
 
-	dsm($node);
-	$output = "<div style='background:#eef;padding:20px 5px 10px 15px;'><h1>Titulo: $node->title </h1>" ;
-	$output .= l("Ver nodo","node/$node->nid") ."<br/>";
-	$output .=  "Tipo de Contenido: ".ucfirst($node->type) ."<br/>";
-	$output .= "Fecha de Creado: ".format_date($node->created, 'custom', 'l d/M/Y')."<br/>";
+	$comentarios = comment_node_page_additions($node);
+dsm($comentarios);
+	$comentarios = $comentarios["comments"];
 
-	$output .= "Cantidad de comentarios: $node->comment_count <br/>";
+	$output = "<h3>$node->title</h3>";
+	$output .= "<table class='table table-hover'><thead>
+							<th>Autor</th>
+							<th>Fecha</th>
+							<th>Comentario</th>
+						</thead>
+						<tbody>";
+	for($i=119;$i<124;$i++){
+		$output .="<tr><td>".$comentarios[$i]["comment_body"]["#object"]->name."</td>";
+		$output .="<td>".format_date($comentarios[$i]["comment_body"]["#object"]->created,'custom','d/m/y')."</td>";
+		$output .="<td>".$comentarios[$i]["comment_body"]["#items"][0]['value']."</td></tr>";
+	}
+	$output .="</tbody></table>";
 
-	if($node->comment_count==0)
-		$output .= "Sin Comentarios";
-	elseif ($node->comment_count = 1)
-		$output .= "Singular Un Comentario";
-	elseif ($node->comment_count>1)
-		$output .= "$page->comment_count Comentarios";
-
-	$output .= "<br/>Estado del Nodo ";
-	if($node->status==1)
-		$output .="<span style='color:#0f0;'>Publicado</span>";
-	else
-		$output .="<span style='color:#f00;'>No Publicado</span>";
-
-	$output .="<br/>Autor: ".l($node->name,"user/$node->uid");
-
-
-	return $output."</div>";
+	return $output;
 }
+
