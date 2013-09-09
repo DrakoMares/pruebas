@@ -8,4 +8,6 @@ dependencies[] = block
 files[] = directorio.module
 files[] = directorio.admin.inc
 
+stylesheets[all][] = style.css
+
 configure = admin/settings/directorio
