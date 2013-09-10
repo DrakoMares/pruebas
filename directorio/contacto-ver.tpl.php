@@ -9,7 +9,7 @@
  */
 
 ?>
-<div>
+<div class='contacto'>
 	<?php if(isset($contacto->nombre_completo)): ?>
 		<h3>Nombre Completo: <strong> <?php print $contacto->nombre_completo; ?> </strong> </h3>
 	<?php endif; ?>

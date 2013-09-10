@@ -1,6 +1,7 @@
 .contacto{
 	background: #ccc;
 }
-span{
+strong{
 	font-weight: bold;
+	color:#00f;
 }
