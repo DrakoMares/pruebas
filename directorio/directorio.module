@@ -35,9 +35,9 @@ function directorio_menu() {
 		'type' =>	MENU_CALLBACK
 	);
 
-	$items["directorio/buscar/nombre/%"] = array(
+	//$items["directorio/buscar/nombre/%"] = array(
 
-	);
+	//);
 
 
 	//_-----------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ function directorio_menu() {
 		'type' => MENU_NORMAL_ITEM,
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array("directorio_agregarContactoForm"),
-		'access arguments' => array("agregar contacto"),
+		'access arguments' => array("agregar contacto")
 	);
 
 	$items["contactos/ver/%"] = array(
@@ -66,17 +66,80 @@ function directorio_menu() {
 		'type' => MENU_CALLBACK
 	);
 
-	// $items["contactos/editar/%"] = array(
+	$items["contactos/editar/%"] = array(
+		'title callback' => 'contactosTitle',
+		'title arguments' => array(1, 2),
+		'description' => 'Editar contacto',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array("directorio_agregarContactoForm",2),
+		'access arguments' => array("editar contacto"),
+		'type' => MENU_CALLBACK
+	);
 
-	// );
-
-	// $items["eliminar/%"] = array(
-
-	// );
+	$items["contactos/eliminar/%"] = array(
+		'title' => 'Eliminar contacto',
+		'title arguments' => array(1, 2),
+		'description' => 'Editar contacto',
+		'page callback' => 'drupal_get_form',
+		'page arguments' => array("directorio_eliminarContactoForm",2),
+		'access arguments' => array("eliminar contacto"),
+		'type' => MENU_CALLBACK
+	);
 
 	return $items;
 }
 
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+
+function directorio_eliminarContactoForm($form, &$form_state, $cid){
+	$form = array();
+	$contacto = contactosLoad($cid);
+
+	if($contacto){
+		$form["_cid"] = array(
+			'#type' => 'hidden',
+			'#value' => $cid
+		);
+		$question = t("Estas seguro de eliminar el contacto @nombre", array("@nombre" => contactoRealname($contacto)));
+		$path = "contactos/ver/" . $cid;
+		$description = t("Esta accion no se puede deshacer");
+		$yes = t("Si, eliminar contacto");
+		$no = t("cancel");
+
+		return confirm_form($form, $question, $path, $description, $yes, $no);
+	}
+	else{
+		drupal_set_message(t("No se pudo eliminar el contacto"));
+		return $form;
+	}
+}
+
+function directorio_eliminarContactoForm_submit($form, &$form_state){
+	$cid = $form_state["value"]["_cid"];
+
+	$contacto = contactosLoad($cid);
+	if($contacto){
+		$remove = db_delete("contactos")
+			->condition("cid", $cid, "=")
+			->execute();
+
+		if($remove){
+			drupal_set_message(t("El contacto fue eliminado con exito"));
+		}
+		else {
+			drupal_set_message(t("El contacto no pudo ser eliminado"), "error");
+		}
+	}
+	else{
+		drupal_set_message(t("El contacto que se intento eliminar no existe"),"error");
+	}
+
+	$form_state["redirect"] = "directorio";
+}
+
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 function directorio_buscarForm($form){
 	$form = array();
 
@@ -412,6 +475,14 @@ function directorio_permission() {
 		'ver datos privados' => array(
 			'title' => t("Ver Datos Privados"),
 			'description' => t("Permite ver datos privados de un contacto")
+		),
+		'editar contacto' => array(
+			'title' => t("Editar contactos"),
+			'description' => t("Permite editar contactos")
+		),
+		'eliminar contacto' => array(
+			'title' => t("Eliminar contactos"),
+			'description' => t("Permite eliminar contactos")
 		)
 	);
 }
@@ -420,7 +491,7 @@ function directorio_permission() {
  * Callback para contactos/agregar
  * Muestra la forma para agregar un contacto
  */
-function directorio_agregarContactoForm($form) {
+function directorio_agregarContactoForm($form, &$form_state, $cid = NULL ) {
 	$form = array();
 
 	$form["nombre"] = array(
@@ -495,6 +566,7 @@ function directorio_agregarContactoForm($form) {
 		'#description' => t("Escriba el teléfono celular del contacto")
 	);
 
+
 	$form["actions"] = array(
 		'#prefix' => '<div class="actions well">',
 		'#suffix' => '</div>'
@@ -505,15 +577,40 @@ function directorio_agregarContactoForm($form) {
 		'#value' => t("Save")
 	);
 
+	if(isset($cid)){
+		$contacto = contactosLoad($cid);
+
+		$form["_cid"] = array(
+			'#type' => "hidden",
+			'#value' => $cid
+		);
+
+		$form["nombre"]["#default_value"] = $contacto->nombre;
+		$form["apellido_paterno"]["#default_value"] = $contacto->apellido_paterno;
+		$form["apellido_materno"]["#default_value"] = $contacto->apellido_materno;
+		$form["departamento"]["#default_value"] = $contacto->departamento;
+		$form["telefono_oficina"]["#default_value"] = $contacto->telefono_oficina;
+		$form["email_trabajo"]["#default_value"] = $contacto->email_trabajo;
+		$form["email_personal"]["#default_value"] = $contacto->email_personal;
+		$form["telefono_celular"]["#default_value"] = $contacto->telefono_celular;
+		$form["telefono_casa"]["#default_value"] = $contacto->telefono_casa;
+		$form["oficina_extension"]["#default_value"] = $contacto->oficina_extension;
+
+		if(user_access("eliminar contacto")){
+			$form["action"]["delete"] = array(
+				'markup' => l(t("Delete"), "contactos/eliminar/" . $cid)
+			);
+		}
+	}
 	return $form;
 }
 
 /**
  * Submit callback para agregar contactos form
  */
-function directorio_agregarContactoForm_submit(&$form, &$form_state) {
+function directorio_agregarContactoForm_submit($form, &$form_state) {
 	$values = $form_state["values"];
-	dsm($values);
+	//dsm($values);
 
 	$persona = array(
 		'nombre' => $values["nombre"],
@@ -528,15 +625,29 @@ function directorio_agregarContactoForm_submit(&$form, &$form_state) {
 		'telefono_casa' => $values["telefono_casa"]
 	);
 
-	$cid = db_insert("contactos")
-		->fields($persona)
-		->execute();
+	if(!empty($values["_cid"])){
+		//estoy editando
+		$cid = $values["_cid"];
 
-	if($cid) {
-		drupal_set_message(t("Se insertó con éxito el contacto con id !id", array("!id" => $cid)));
+		$update = db_merge("contactos")
+			->key(array("cid" => $cid))
+			->fields($persona)
+			->execute();
+
+			//aqui falta algo
 	}
-	else {
-		drupal_set_message(t("Hubo un error"), "error");
+	else{
+		$cid = db_insert("contactos")
+			->fields($persona)
+			->execute();
+
+		if($cid) {
+			drupal_set_message(t("Se insertó con éxito el contacto con id !id", array("!id" => $cid)));
+		}
+		else {
+			drupal_set_message(t("Hubo un error"), "error");
+		}
+		
 	}
 }
 
