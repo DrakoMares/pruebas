@@ -100,6 +100,13 @@ function directorio_schema() {
 				'length' => '24',
 				'not null' => FALSE,
 				'default' => NULL
+			),
+			'fecha_nacimiento' => array(
+				'description' => 'Fecha de nacimiento del contacto',
+				'type' => 'int',
+				'not null' => FALSE,
+				'default' => NULL,
+				'unsigned' => FALSE
 			)
 		),
 		'indexes' => array(
@@ -113,4 +120,19 @@ function directorio_schema() {
 	);
 
 	return $schema;
+}
+
+/**
+ * Agrega la columna fecha de nacimiento a la tabla contactos
+ */
+function directorio_update_7100(){
+	$column = array(
+		'description' => 'Fecha de nacimiento del contacto',
+		'type' => 'int',
+		'not null' => FALSE,
+		'default' => NULL,
+		'unsigned' => FALSE
+	);
+
+	db_add_field("contactos", "fehca_nacimiento", $column);
 }

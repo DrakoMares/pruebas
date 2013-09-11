@@ -78,7 +78,6 @@ function directorio_menu() {
 
 	$items["contactos/eliminar/%"] = array(
 		'title' => 'Eliminar contacto',
-		'title arguments' => array(1, 2),
 		'description' => 'Editar contacto',
 		'page callback' => 'drupal_get_form',
 		'page arguments' => array("directorio_eliminarContactoForm",2),
@@ -566,6 +565,13 @@ function directorio_agregarContactoForm($form, &$form_state, $cid = NULL ) {
 		'#description' => t("Escriba el teléfono celular del contacto")
 	);
 
+	$form["nacimiento"] = array(
+		'#type' => 'date',
+		'#title' => t("Fecha de nacimiento"),
+		'#description' => t("Ingrese la fecha de nacimiento"),
+		'#required' => FALSE
+	);
+
 
 	$form["actions"] = array(
 		'#prefix' => '<div class="actions well">',
@@ -597,8 +603,8 @@ function directorio_agregarContactoForm($form, &$form_state, $cid = NULL ) {
 		$form["oficina_extension"]["#default_value"] = $contacto->oficina_extension;
 
 		if(user_access("eliminar contacto")){
-			$form["action"]["delete"] = array(
-				'markup' => l(t("Delete"), "contactos/eliminar/" . $cid)
+			$form["actions"]["delete"] = array(
+				'#markup' => l(t("Delete"), "contactos/eliminar/" . $cid)
 			);
 		}
 	}
@@ -625,6 +631,14 @@ function directorio_agregarContactoForm_submit($form, &$form_state) {
 		'telefono_casa' => $values["telefono_casa"]
 	);
 
+
+	$fecha = $values["nacimiento"];
+
+	if(isset($fecha) && is_array($fecha)){
+		$persona["fecha_nacimiento"] = strtotime($fecha["month"] . "/" . $fecha["day"] ."/".$fecha["year"]);
+	}
+
+
 	if(!empty($values["_cid"])){
 		//estoy editando
 		$cid = $values["_cid"];
@@ -634,7 +648,6 @@ function directorio_agregarContactoForm_submit($form, &$form_state) {
 			->fields($persona)
 			->execute();
 
-			//aqui falta algo
 	}
 	else{
 		$cid = db_insert("contactos")
