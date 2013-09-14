@@ -1,0 +1,10 @@
+name = cambios
+core = 7.x
+
+descripcion = Modulo para hacer cambios 
+
+version = 7.x.1.0-alpha1
+dependencies[] = directorio
+files[] = cambios.module
+files[] = cambios.admin.inc
+

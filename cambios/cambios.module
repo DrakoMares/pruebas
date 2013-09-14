@@ -1,0 +1,31 @@
+<?php 
+
+function cambios_form_alter(&$form, &$form_state, $form_id){
+	if($form_id == "directorio_buscarForm"){
+
+		drupal_add_css(drupal_get_path("module","cambios") . "/cambios.css");
+		drupal_add_js(drupal_get_path("module","cambios") . "/jquery.js");
+		drupal_add_js(drupal_get_path("module","cambios") . "/jquery-ui.js");
+		drupal_add_js(drupal_get_path("module","cambios") . "/cambios.js");
+
+		$elements = array("nombre", "ext", "departamento", "submit");
+
+		foreach ($elements as $element) {
+			$form[$element]["#prefix"] = "<div class='inline'>";
+			$form[$element]["#suffix"] = "</div>";
+		}
+
+		$form["nombre"]["#size"] = 8;
+		$form["ext"]["#size"] = 8;
+		$form["departamento"]["#size"] = 8;
+
+
+	}
+}
+function cambios_menu_alter(&$items){
+	$items["directorio"]["page callback"] = 'cambios_page';
+}
+
+function cambios_page(){
+	return t("Estoy deshabilitando la pagina de direcotiro alternaod el page callback");
+}
